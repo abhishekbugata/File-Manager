@@ -115,7 +115,7 @@ function promptForFolder() {
                 const copyFiles = answer.toLowerCase() === 'yes';
                 const sortedFolderPath = sortFilesByExtension(directoryPath, copyFiles);
                 console.log();
-                console.log('Files organized. You can now search within these files.');
+                console.log('Files organized. You can now search with FiMi.');
                 console.log();
                 promptForQuery(sortedFolderPath);
             });
