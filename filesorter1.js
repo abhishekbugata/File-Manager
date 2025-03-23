@@ -8,46 +8,40 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-function deleteDuplicates(directory, fileName) {
-    const files = fs.readdirSync(directory);
-    files.forEach(file => {
-        const filePath = path.join(directory, file);
-        if (fs.statSync(filePath).isDirectory()) {
-            deleteDuplicates(filePath, fileName);
-        } else if (file === fileName) {
-            fs.unlinkSync(filePath);
-            console.log(`Deleted duplicate file: ${filePath}`);
-        }
-    });
-}
-
 function sortFilesByExtension(directory, copyFiles) {
     const files = fs.readdirSync(directory);
     const sortedFolderName = path.basename(directory) + ' Sorted';
     const sortedFolderPath = path.join(path.dirname(directory), 'Sorted', sortedFolderName);
 
-    if (!fs.existsSync(path.join(path.dirname(directory), 'Sorted'))) {
-        fs.mkdirSync(path.join(path.dirname(directory), 'Sorted'));
+    // Create 'Sorted' parent directory if it doesn’t exist
+    const sortedParentPath = path.join(path.dirname(directory), 'Sorted');
+    if (!fs.existsSync(sortedParentPath)) {
+        fs.mkdirSync(sortedParentPath);
     }
 
+    // Create sorted subfolder if it doesn’t exist
     if (!fs.existsSync(sortedFolderPath)) {
         fs.mkdirSync(sortedFolderPath);
     }
 
     files.forEach(file => {
-        const ext = path.extname(file).toLowerCase();
-        const extFolder = path.join(sortedFolderPath, ext.substring(1));
+        const oldPath = path.join(directory, file);
+        if (!fs.statSync(oldPath).isFile()) return; // Skip directories
 
+        const ext = path.extname(file).toLowerCase();
+        const extFolder = path.join(sortedFolderPath, ext.substring(1) || 'no_extension'); // Handle files without extensions
+
+        // Create extension folder if it doesn’t exist
         if (!fs.existsSync(extFolder)) {
             fs.mkdirSync(extFolder);
         }
 
-        const oldPath = path.join(directory, file);
         const newPath = path.join(extFolder, file);
 
-        if (fs.statSync(oldPath).isFile()) {
-            deleteDuplicates(extFolder, file);
-
+        // Check for duplicate before transferring
+        if (fs.existsSync(newPath)) {
+            console.log(`Duplicate detected: ${newPath}`);
+        } else {
             if (copyFiles) {
                 fs.copyFileSync(oldPath, newPath);
             } else {
